@@ -1,7 +1,3 @@
-from asyncore import read
-from csv import excel
-
-
 qa_tree = [
 	{
 		'question': 'Инструмент электрический или ручной?',
