@@ -1,6 +1,10 @@
 from cmath import inf
 from anytree import Node, RenderTree
 import json
+from sys import argv
+
+from minmax import minmax, metrics as m1
+from minmax_ab import minmax_ab, metrics as m2
 
 f = open('tree.json')
 json_tree = json.load(f)
@@ -20,45 +24,28 @@ for node in json_tree:
 		)
 
 
-is_first_step_max = False
+is_first_step_max = (
+	True
+	if len(argv) < 2
+	else argv[1] == 'max'
+)
+is_ab = (
+	False
+	if len(argv) < 3
+	else argv[2] == 'ab'
+)
+is_reverse = (
+	False
+	if len(argv) < 4
+	else argv[3] == 'reverse'
+)
 
-metric = 0
+if is_ab:
+	minmax_ab(tree['root'], is_first_step_max, -inf, +inf, reversed_children=is_reverse)
+	print('Количество посещенных вершин: %d' %  (m2['nodes']))
+else:
+	minmax(tree['root'], is_first_step_max, reversed_children=is_reverse)
+	print('Количество посещенных вершин: %d' %  (m1['nodes']))
 
-def minmax(node, maximazing):
-	global metric
-	metric += 1
-
-	if node.value is not None:
-		return node.value
-
-	children_values = [minmax(inode, level + 1) for inode in node.children]
-	node.value = (
-		max(children_values) if level % 2 == int(not is_first_step_max)
-		else min(children_values)
-	)
-	return node.value
-
-minmax(tree['root'], 0)
-
-# def minmax_ab(node, level, alpha, beta):
-# 	global metric
-# 	metric += 1
-
-# 	if node.value is not None:
-# 		return node.value
-
-# 	children_values = [minmax(inode, level + 1) for inode in node.children]
-
-# 	if level % 2 == int(not is_first_step_max):
-# 		node.value = ( max(children_values) )
-# 	else:
-# 		node.value = ( min(children_values) )
-# 	return node.value
-
-# minmax_ab(tree['root'], 0, +inf, -inf)
-
-
-print(metric)
-print('FIRST', 'MAX' if is_first_step_max else 'MIN')
 for pre, fill, node in RenderTree(tree['root']):
 	print('%s%s = %s' % (pre, node.name, node.value))
