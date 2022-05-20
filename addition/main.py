@@ -17,9 +17,9 @@ def bin_to_int(num):
 def f(x):
 	return -math.sin(0.9 * x - 1) - math.sin(1.8 * x - 1) * math.cos(7.8 * x)
 
-start_population_size = 1000
 population_size = 50
 chromosome_length = 20
+start_population_size = bin_to_int('1' * chromosome_length)
 
 lower_border = -5
 upper_border = 5
@@ -56,6 +56,23 @@ def mutate(a):
 	a = a[:locus] + ('0' if a[locus] == '1' else '1') + a[locus + 1:]
 	return a
 
+def get_population_values(population):
+	return list(map(
+		lambda x: lower_border + points_step * bin_to_int(x),
+		population
+	))
+
+def get_population_weights_from_population(population):
+	return list(map(
+		lambda x: f(lower_border + points_step * bin_to_int(x)),
+		population
+	))
+
+def get_population_weights_from_values(population):
+	return list(map(
+		lambda x: f(x),
+		population
+	))
 
 def roulette(weights, weights_sum):
 	percentages = list(map(
@@ -108,10 +125,7 @@ def run_evolution(population):
 	# REDUCTION
 	#
 	population += next_generation
-	population_weights = list(map(
-		lambda x: f(lower_border + points_step * bin_to_int(x)),
-		population
-	))
+	population_weights = get_population_weights_from_population(population)
 
 	# improve values
 	min_weight = min(population_weights)
@@ -137,11 +151,39 @@ def run_evolution(population):
 	return next_population
 
 
+def print_population_data(population, title=None):
+	population_values = get_population_values(population)
+	population_weights = get_population_weights_from_values(population_values)
+
+	if title is not None:
+		print(title)
+
+	for i in range(len(population)):
+		print('%2d %+f %s %+f %+f' % (
+			i + 1,
+			population_values[i],
+			population[i],
+			population_weights[i],
+			population_weights[i]
+		))
+
+print_population_data(population, 'First')
+
+should_print = True
 for i in range(1000):
 	population = run_evolution(population)
 
-population_weights = list(map(
-	lambda x: f(bin_to_int(x)),
-	population
-))
-print(max(population_weights))
+	if should_print:
+		should_print = False
+		print_population_data(population, 'Second')
+
+print_population_data(population, 'Last')
+
+
+population_values = get_population_values(population)
+population_weights = get_population_weights_from_values(population_values)
+
+max_weight = max(population_weights)
+max_value = population_values[population_weights.index(max_weight)]
+
+print('x =', max_value, 'y =', max_weight)
